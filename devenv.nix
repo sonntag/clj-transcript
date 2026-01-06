@@ -6,6 +6,9 @@
   packages = with pkgs; [
     git
     claude-code
+    clojure
+    clj-kondo
+    babashka
   ];
 
   claude.code = {
@@ -25,14 +28,21 @@
 
   enterShell = ''
     echo ""
-    echo "🚀 Welcome to your Claude Code development environment!"
-    echo "📋 This template includes:"
-    echo "   • Claude Code CLI ready to use"
-    echo "   • Git with pre-commit hooks configured"
-    echo "   • Clean development environment"
+    echo "🧪 clj-transcript - Transcript-based testing for Clojure"
     echo ""
-    echo "💡 Quick start: Run 'claude' to begin coding with AI assistance"
+    echo "Commands:"
+    echo "  transcript run           - Run all transcript tests"
+    echo "  transcript run <file>    - Run a specific transcript"
+    echo "  transcript accept <file> - Accept output for a transcript"
+    echo "  transcript accept-all    - Accept all transcript outputs"
     echo ""
+    echo "  clj -X:test              - Run unit tests"
+    echo "  clj -M:repl              - Start a REPL"
+    echo ""
+  '';
+
+  scripts.transcript.exec = ''
+    clojure -M:cli "$@"
   '';
 
   git-hooks.hooks = {

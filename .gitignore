@@ -12,3 +12,14 @@ devenv.local.nix
 .claude/settings.json
 .claude/settings.local.json
 .mcp.json
+
+# Clojure
+.cpcache/
+.nrepl-port
+target/
+*.jar
+pom.xml
+pom.xml.asc
+classes/
+.clj-kondo/.cache
+.lsp/.cache
