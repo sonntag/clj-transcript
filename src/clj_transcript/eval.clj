@@ -2,13 +2,14 @@
   "Code evaluation utilities for transcript execution."
   (:require [clojure.string :as str]))
 
+(def ^:private ns-counter (atom 0))
+
 (defn create-eval-ns
-  "Creates a fresh namespace for evaluation."
+  "Creates a fresh namespace for evaluation.
+  Uses a unique namespace name to avoid conflicts with other eval contexts."
   []
-  (let [ns-name 'user]
-    ;; Remove existing user namespace to get a clean slate
-    (when (find-ns ns-name)
-      (remove-ns ns-name))
+  (let [id (swap! ns-counter inc)
+        ns-name (symbol (str "clj-transcript.sandbox-" id))]
     (create-ns ns-name)
     ns-name))
 

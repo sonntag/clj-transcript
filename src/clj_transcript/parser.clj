@@ -1,15 +1,19 @@
 (ns clj-transcript.parser
   "Markdown parsing utilities for extracting and rendering code blocks."
-  (:require [clojure.string :as str]))
+  (:require
+    [clojure.string :as str]))
+
 
 (def code-block-pattern
   "Regex pattern to match fenced code blocks with optional language."
   #"(?m)^```(\w*)\n([\s\S]*?)^```")
 
+
 (defn- output-block?
   "Returns true if the content looks like an output block."
   [content]
   (boolean (re-find #"^(;;=>|;; stdout:|;; error:)" (str/trim content))))
+
 
 (defn parse-all-blocks
   "Parses markdown and extracts all fenced code blocks.
@@ -30,6 +34,7 @@
                                :is-output is-output})))
         blocks))))
 
+
 (defn parse-code-blocks
   "Parses markdown and extracts all Clojure code blocks (excluding outputs).
   Returns a vector of maps with :lang, :code, :start, :end positions."
@@ -40,6 +45,7 @@
        (mapv #(-> %
                   (assoc :code (:content %))
                   (dissoc :content :is-output)))))
+
 
 (defn parse-blocks-with-outputs
   "Parses a snapshot markdown and extracts code blocks paired with their outputs.
@@ -64,6 +70,13 @@
             ;; Skip non-clojure blocks
             (recur rest-blocks result)))))))
 
+
+(defn- normalize-ns
+  "Replaces sandbox namespace names with 'user' for consistent output."
+  [s]
+  (str/replace s #"clj-transcript\.sandbox-\d+" "user"))
+
+
 (defn format-output
   "Formats the output of a code block execution for display."
   [{:keys [stdout result error]}]
@@ -75,9 +88,10 @@
                 (conj (str ";; error: " error))
 
                 (and (not error) (some? result))
-                (conj (str ";;=> " (pr-str result))))]
+                (conj (str ";;=> " (normalize-ns (pr-str result)))))]
     (when (seq parts)
       (str/join "\n" parts))))
+
 
 (defn render-with-outputs
   "Takes the original markdown and block results, returns markdown with outputs.
@@ -87,16 +101,17 @@
     markdown
     (let [sorted-blocks (sort-by :end > blocks)]
       (reduce
-       (fn [md block]
-         (let [output (format-output (:output block))]
-           (if (and output (not (str/blank? output)))
-             (let [insert-pos (:end block)
-                   before (subs md 0 insert-pos)
-                   after (subs md insert-pos)]
-               (str before "\n\n" "```\n" output "\n```" after))
-             md)))
-       markdown
-       sorted-blocks))))
+        (fn [md block]
+          (let [output (format-output (:output block))]
+            (if (and output (not (str/blank? output)))
+              (let [insert-pos (:end block)
+                    before (subs md 0 insert-pos)
+                    after (subs md insert-pos)]
+                (str before "\n\n" "```\n" output "\n```" after))
+              md)))
+        markdown
+        sorted-blocks))))
+
 
 (defn strip-outputs
   "Removes output blocks that were previously added.
